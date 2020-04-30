@@ -1,0 +1,31 @@
+{
+	"name" : "mantonio84/laravel-simple-asm",
+	"description" : "A simple asset manager for Laravel 7.x",
+	"type" : "library",
+	"version" : "1.0.0",
+	"minimum-stability" : "dev",
+	"require" : {
+		"php" : "^7.3.16",
+		"spatie/url" : "^1.3.2"
+	},
+	"authors" : [
+		{
+			"name" : "Antonio Mirarchi",
+			"email" : "m.antonio19849@gmail.com"
+		}
+	],
+	"autoload" : {
+		"psr-4" : {
+			"mantonio84\\SimpleAsm\\" : "src/"
+		}
+	},
+	"extra" : {
+		"laravel" : {
+			"providers" : [ "mantonio84\\SimpleAsm\\ASMServiceProvider" ],
+			"aliases" : {
+				"ASM" : "mantonio84\\SimpleAsm\\Facades\\SimpleAssetManager"
+			}
+		}
+	},
+	"license" : "MIT"
+}
