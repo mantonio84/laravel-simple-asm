@@ -117,8 +117,8 @@ class Registry implements \ArrayAccess, Arrayable, Jsonable, JsonSerializable {
         return json_encode($this->jsonSerialize(), $options);
     }
 	
-	public function __toString(){
-		return $this->toJson();
+	public function toBase64(){
+		return base64_encode($this->toJson());
 	}
 	
 	
