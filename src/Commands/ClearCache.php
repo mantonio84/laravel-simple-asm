@@ -38,7 +38,7 @@ class ClearCache extends Base
      */
     public function handle()
     {        
-		$path=AsmCache:getCompiledRealPath();
+		$path=AsmCache::getCompiledRealPath();
 		$files=scandir($path);
 		if (!is_array($files)){
 			$this->error("Impossibile aprire il percorso di cache su disco!");
