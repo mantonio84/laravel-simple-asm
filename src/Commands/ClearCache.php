@@ -5,7 +5,7 @@ namespace mantonio84\SimpleAsm\Commands;
 use Illuminate\Console\Command;
 use mantonio84\SimpleAsm\Classes\Cache as AsmCache;
 
-class ClearCache extends Base
+class ClearCache extends Command
 {
     /**
      * The name and signature of the console command.
