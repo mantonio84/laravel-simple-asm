@@ -173,16 +173,18 @@ class Manager {
 				}
 			}				
 			
-			foreach (config("asm.streams",[]) as $name => $config){
-				if (\Arr::get($config,"auto_find_on_view")===true){
-					$extensions=\Arr::get($config,"extensions",[]);
-					if (!empty($extensions)){					
-						foreach ($extensions as $e){
-							$f="views/".str_replace(".","/",$view).".".$e;
-							if (is_file(public_path($f))){
-								 $computedAssets[$name][]=$f;					
-							}
-						}	
+			foreach ($this->views as $view){
+				foreach (config("asm.streams",[]) as $name => $config){
+					if (\Arr::get($config,"auto_find_on_view")===true){
+						$extensions=\Arr::get($config,"extensions",[]);
+						if (!empty($extensions)){					
+							foreach ($extensions as $e){
+								$f="views/".str_replace(".","/",$view).".".$e;
+								if (is_file(public_path($f))){
+									 $computedAssets[$name][]=$f;					
+								}
+							}	
+						}
 					}
 				}
 			}
