@@ -102,7 +102,7 @@ class Manager {
 		
 		
 		$computedAssets=Cache::make(["others" => $this->others, "views" => $this->views])->remember($stream, function ($stream){
-			return \Arr::get($this->evaluate_all,$stream,[]);
+			return \Arr::get($this->evaluate_all(),$stream,[]);
 		});
 		
 		foreach ($computedAssets as $asset){
