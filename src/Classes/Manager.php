@@ -77,7 +77,7 @@ class Manager {
 			return "";
 		}
 		$stream=strtolower(trim($stream));
-		if (!in_array($stream,$this->get_all_sections()){
+		if (!in_array($stream,$this->get_all_sections())){
 			return "";
 		}		
 						
