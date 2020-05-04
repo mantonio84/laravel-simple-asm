@@ -51,7 +51,7 @@ class ClearCache extends Base
 			$sz+=filesize($f);
 			unlink($f);
 		}
-		$this->line("Cache Laravel Simple Asset Manager svuotata: rimossi ".count($files)." dal disco per un totale di ".$this->format_file_size($sz);
+		$this->line("Cache Laravel Simple Asset Manager svuotata: rimossi ".count($files)." dal disco per un totale di ".$this->format_file_size($sz));
     }
 	
 	protected function format_file_size($size) {
