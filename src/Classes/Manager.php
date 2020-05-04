@@ -114,7 +114,7 @@ class Manager {
 		return "\n\r".implode("\n\r",$ret)."\n\r";
 	}
 	
-	protected function get_stubbed(string $asset, $stream == null){
+	protected function get_stubbed(string $asset, $stream = null){
 		$q=$this->get_qualified_asset_path($asset);
 		
 		$strem=is_string($stream) ? $stream : $this->get_appropriate_section($asset);
