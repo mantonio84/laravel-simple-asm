@@ -160,7 +160,7 @@ class Manager {
 				},$this->views),
 				array_map(function ($itm){
 					return ["packages", $itm];
-				},$this->others);
+				},$this->others)
 			);		
 			
 			$dep=array();			
