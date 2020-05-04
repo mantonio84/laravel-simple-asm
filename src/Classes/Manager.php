@@ -82,7 +82,7 @@ class Manager {
 		}		
 						
 		$ret=array("<!-- begin mma:$stream -->");
-		if ($stream=="javascript"){			
+		if ($stream=="js"){			
 			if (!request()->ajax()){
 				$uid="";
 				if ($this->reg->isNotEmpty()){
@@ -153,25 +153,26 @@ class Manager {
 			
 			$computedAssets=array_fill_keys($this->get_all_sections(),array());
 			$required=array_merge(
-				["every","request"],
-				[request()->ajax() ? "ajax" : "display", "request"],
+				[["every","request"]],
+				[[request()->ajax() ? "ajax" : "display", "request"]],
 				array_map(function ($itm){
-					return ["views", $itm];
+					return [$itm,"views"];
 				},$this->views),
 				array_map(function ($itm){
-					return ["packages", $itm];
+					return [$itm,"packages"];
 				},$this->others)
 			);		
 			
 			$dep=array();			
 			foreach ($required as $r){
-				$a=$this->evaluate($r[0],$r[1],true,$dep);
+				$a=$this->evaluate($r[0],$r[1],true,$dep);				
 				$dep=array_merge($dep,$a['included']);
 				foreach ($a['found'] as $f){
 					$w=$this->get_appropriate_section($f);
 					$computedAssets[$w][]=$f;
 				}
-			}				
+			}			
+			
 			
 			foreach ($this->views as $view){
 				foreach (config("asm.streams",[]) as $name => $config){
@@ -202,6 +203,7 @@ class Manager {
 	
 	protected function evaluate(string $name, string $root, bool $recursive=true, array $to_exclude=[]){
 		static::parseLibraryFile();
+		
 		if (isset(static::$library[$root]) && isset(static::$library[$root][$name]) && !in_array($name,$to_exclude)){
 			$ret=[];
 			$dep=array();

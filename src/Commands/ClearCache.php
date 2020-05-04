@@ -47,7 +47,7 @@ class ClearCache extends Command
 				$this->error("Impossibile aprire il percorso di cache su disco!");
 				return;
 			}
-			$files=array_slice(2,$files);			
+			$files=array_slice($files,2);			
 			foreach ($files as $f){
 				$f=$path.$f;
 				$sz+=filesize($f);

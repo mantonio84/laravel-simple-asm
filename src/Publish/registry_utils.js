@@ -1,28 +1,36 @@
 Registry = function(){
-	var registry_data = objectPath({});
+	var registry_data = {};
 	var first=true;
-	function fill(data){
+	function fill(data){		
 		try {
-			var rd=JSON.parse(atob(data)); 
-		}catch(err) {
-			return false;
+			var rd=JSON.parse(atob(data)); 			
+		}catch(err) {			
+			return false;			
 		}
-		if (first===false){
-			var currentData=Registry.get();
-			registry_data=objectPath(Object.assign({},currentData,rd));			
+		if (first===false){			
+			Object.assign(registry_data,rd);			
 		}else{
-			registry_data=objectPath(rd);
+			registry_data=rd;
 			first=false;
-		}   
+		}   		
 		return true;		
 	} 
 	function dump(){
-		return registry_data.get();
+		return objectPath.get(registry_data);
+	}
+	function get(key, def){
+		return objectPath.get(registry_data, key, def);
+	}
+	function has(key){
+		if (typeof key === "undefined" || key === null){
+			return !first;
+		}
+		return objectPath.has(registry_data, key);
 	}
   return{
     fill: fill,
-    get: registry_data.get,
-	has: registry_data.has,
+    get: get,
+	has: has,
 	toObject: dump,	
   }
 }();

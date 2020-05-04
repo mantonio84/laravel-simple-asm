@@ -38,7 +38,7 @@ class ASMServiceProvider extends ServiceProvider
 		]);
 		
 		$this->publishes([
-			__DIR__.'/Publish/registry_utils.js' => public_path('vendor/mantonio84/simpleasm/registry_utils.min.js'),
+			__DIR__.'/Publish/registry_utils.min.js' => public_path('vendor/mantonio84/simpleasm/registry_utils.min.js'),
 			__DIR__.'/Publish/objectpath.min.js' => public_path('vendor/mantonio84/simpleasm/objectpath.min.js'),
 		], 'public');
 		

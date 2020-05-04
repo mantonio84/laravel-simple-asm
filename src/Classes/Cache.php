@@ -3,7 +3,7 @@ namespace mantonio84\SimpleAsm\Classes;
 use MatthiasMullie\Minify;
 
 class Cache {
-	
+	private const CACHE_FOLDER="asm/";
 	protected $seeds=array();	
 
 	public static function make(array $seeds=[]){
@@ -11,10 +11,14 @@ class Cache {
 	}
 	
 	public static function getCompiledPath(string $filename){
-		return preg_replace('/[\/]+/','/',\Str::start($filename, 'asm/'));
+		return preg_replace('/[\/]+/','/',\Str::start($filename, static::CACHE_FOLDER));
 	}
 	
 	public static function getCompiledRealPath(string $filename=""){
+		$folder=public_path(static::CACHE_FOLDER);
+		if (!is_dir($folder)){
+			mkdir($folder);
+		}
 		return public_path(static::getCompiledPath($filename));
 	}
 
@@ -40,12 +44,28 @@ class Cache {
 		   }
 		   $compiler=new $compilerName();
 		   foreach ($files as $f){
-			   $compiler->addFile($f);
+			   $compiler->add($this->readAssetFile($f));
 		   }
 		   $compiler->minify($filepath);
 		}
 		
-		return [basename($filepath)];
+		return [static::getCompiledPath(basename($filepath))];
+	}
+	
+	protected function readAssetFile(string $f){
+		if ($this->is_remote($f)){
+			$context = stream_context_create(
+				array(
+					"http" => array(
+						"header" => "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
+					)
+				)
+			);	
+			return file_get_contents($f,false,$context);
+		}else{
+			return file_get_contents($f);
+		}
+		
 	}
 	
 	protected function get_buffer_key(){	
@@ -55,5 +75,9 @@ class Cache {
 			"ajax" => request()->ajax()
 		]);
 		return sha1(json_encode($seeds));
+	}
+	
+	protected function is_remote(string $w){
+		return (stripos($w,"http://")===0 || stripos($w,"https://")===0);
 	}
 }
