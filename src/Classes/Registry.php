@@ -10,7 +10,7 @@ class Registry implements \ArrayAccess, Arrayable, Jsonable, JsonSerializable {
    
     
     public function get(string $path, $default=null){
-        return \Arr:get($this->data,$path,$default);        
+        return \Arr::get($this->data,$path,$default);        
     }
     
     public function has($path){
