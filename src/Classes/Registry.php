@@ -4,7 +4,7 @@ namespace mantonio84\SimpleAsm\Classes;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 
-class Registry implements \ArrayAccess, Arrayable, Jsonable, JsonSerializable {
+class Registry implements \ArrayAccess, Arrayable, Jsonable, \JsonSerializable {
         
     private $data=array();
    
