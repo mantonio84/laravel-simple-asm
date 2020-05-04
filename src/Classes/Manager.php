@@ -110,7 +110,7 @@ class Manager {
 		}
 		
 		
-		$ret[]="<!-- end mma:$stream -->"
+		$ret[]="<!-- end mma:$stream -->";
 		return "\n\r".implode("\n\r",$ret)."\n\r";
 	}
 	
