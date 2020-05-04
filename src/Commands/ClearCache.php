@@ -39,17 +39,20 @@ class ClearCache extends Command
     public function handle()
     {        
 		$path=AsmCache::getCompiledRealPath();
-		$files=scandir($path);
-		if (!is_array($files)){
-			$this->error("Impossibile aprire il percorso di cache su disco!");
-			return;
-		}
-		$files=array_slice(2,$files);
+		$files=array();
 		$sz=0;
-		foreach ($files as $f){
-			$f=$path.$f;
-			$sz+=filesize($f);
-			unlink($f);
+		if (is_dir($path)){				
+			$files=scandir($path);
+			if (!is_array($files)){
+				$this->error("Impossibile aprire il percorso di cache su disco!");
+				return;
+			}
+			$files=array_slice(2,$files);			
+			foreach ($files as $f){
+				$f=$path.$f;
+				$sz+=filesize($f);
+				unlink($f);
+			}
 		}
 		$this->line("Cache Laravel Simple Asset Manager svuotata: rimossi ".count($files)." dal disco per un totale di ".$this->format_file_size($sz));
     }

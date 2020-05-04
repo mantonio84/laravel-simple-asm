@@ -15,7 +15,7 @@ class ASMServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('simple-asset-manager', function ($app) {
-			return new mantonio84\SimpleAsm\Classes\Manager;
+			return new \mantonio84\SimpleAsm\Classes\Manager;
 		});
     }
 
