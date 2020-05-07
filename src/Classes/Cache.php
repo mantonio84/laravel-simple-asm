@@ -3,53 +3,41 @@ namespace mantonio84\SimpleAsm\Classes;
 use MatthiasMullie\Minify;
 
 class Cache {
-	private const CACHE_FOLDER="asm/";
-	protected $seeds=array();	
 
-	public static function make(array $seeds=[]){
-		return new static($seeds);
-	}
-	
-	public static function getCompiledPath(string $filename){
-		return preg_replace('/[\/]+/','/',\Str::start($filename, static::CACHE_FOLDER));
-	}
-	
-	public static function getCompiledRealPath(string $filename=""){
-		$folder=public_path(static::CACHE_FOLDER);
-		if (!is_dir($folder)){
-			mkdir($folder);
-		}
-		return public_path(static::getCompiledPath($filename));
-	}
+	protected $seeds=array();	
+        
+        public static function make(array $seeds=[]){
+            return new static($seeds);
+        }
 
 	public function __construct(array $seeds=[]){
 		$this->seeds=$seeds;
 	}
 	
-	public function remember(string $stream, \Closure $filler){
+	public function remember(string $stream, \Closure $filler){		
 		if (config("asm.cache",true)!==true){		
-			return call_user_func($filler,$stream);
-		}
-		$key=$this->get_buffer_key();		
-		$filepath=static::getCompiledRealPath($key.".".strtolower($stream));
-		if (!is_file($filepath)){
-		   $files=call_user_func($filler,$stream);
-		   $files=is_array($files) ? $files : [];
-		   if (empty($files)){
-			   return [];
-		   }
-		   $compilerName="\MatthiasMullie\\Minify\\".strtoupper($stream);
-		   if (!class_exists($compilerName)){
-			   return $files;
-		   }
-		   $compiler=new $compilerName();
-		   foreach ($files as $f){
-			   $compiler->add($this->readAssetFile($f));
-		   }
-		   $compiler->minify($filepath);
-		}
-		
-		return [static::getCompiledPath(basename($filepath))];
+			return $this->map_files_to_url($this->run_filler($filler,$stream));
+		}		
+		return cache()->remember($this->get_buffer_key($stream), now()->addWeek(), function () { 
+			return $this->map_files_to_url($this->run_filler($filler,$stream));
+		});		
+	}
+	
+	
+	protected function map_files_to_url(array $files){
+		return array_values(array_filter(array_map(function ($itm) {
+			if ($this->is_remote($itm)){
+				return $itm;
+			}else{
+				return asset($itm);
+			}
+		},$files)));
+	}
+	
+	
+	protected function run_filler(\Closure $filler, string $stream){
+		$files=call_user_func($filler,$stream);
+		return is_array($files) ? $files : [];		
 	}
 	
 	protected function readAssetFile(string $f){
@@ -61,18 +49,19 @@ class Cache {
 					)
 				)
 			);	
-			return file_get_contents($f,false,$context);
+			return file_get_contents($f,false,$context) ?? "";
 		}else{
-			return file_get_contents($f);
+			return file_get_contents($f) ?? "";
 		}
 		
 	}
 	
-	protected function get_buffer_key(){	
+	protected function get_buffer_key(string $stream){	
 		$seeds=array_merge($this->seeds,[
-			'lib' => Manager::parseLibraryFile(),
-			"config" => config("asm.streams",[]),
-			"ajax" => request()->ajax()
+			'stream' => $stream,
+			'lib' => Manager::getLibraryHash(),
+			"extensions" => config("asm.streams.$stream.extensions",[]),
+			"ajax" => request()->ajax(),
 		]);
 		return sha1(json_encode($seeds));
 	}

@@ -1,18 +1,19 @@
 <?php
 namespace mantonio84\SimpleAsm\Classes;
 use Illuminate\View\View;
-use Spatie\Url\Url as UrlManipulator;
-
 
 class Manager {
 	public static $library=null;
+	protected static $library_hash=null;
 	
 	protected $views=[];
 	
 	protected $others=[];
 	protected $kv=array();	
-	protected $reg=null;
+	protected $registry=null;
 	protected $computed=null;
+	
+	
 	
 	public static function getLibraryFilePath(){
 		$nf=config("asm.library","");
@@ -20,6 +21,17 @@ class Manager {
 			return $nf;
 		}
 		return null;
+	}
+	
+	public static function getLibraryHash(bool $forced=false){
+		if (is_null(static::$library_hash) || forced===true){
+			static::$library_hash="";
+			$nf=static::getLibraryFilePath();
+			if (!empty($nf)){				
+				static::$library_hash=sha1_file($nf);
+			}
+		}
+		return static::$library_hash;
 	}
 	
 	public static function parseLibraryFile(bool $forced=false){
@@ -34,17 +46,9 @@ class Manager {
 		return static::$library;
 	}
 	
-	public static function saveLibrary(array $data){
-		$nf=static::getLibraryFilePath();
-		if (!empty($nf)){				
-			file_put_contents($nf,json_encode($data));
-			return true;
-		}	
-		return false;
-	}
 	
 	public function __construct(){
-		$this->reg=new Registry();		
+		$this->registry=new Registry();		
 	}
 	
 	public function acceptView(View &$view){
@@ -54,18 +58,7 @@ class Manager {
 			$this->computed=null;
 		}			
 	}
-	
-	public function registry($key=null, $value=null){
-		if (is_string($key) && !empty($key)){
-			if (is_null($value)){
-				return $this->reg[$key];
-			}else{
-				$this->reg[$key]=$value;
-			}
-		}else{
-			return $this->reg;
-		}
-	}
+
 	
 	public function push($w){
 		$this->others=array_values(array_unique(array_merge($this->others,is_array($w) ? $w : func_get_args())));
@@ -85,21 +78,19 @@ class Manager {
 		if ($stream=="js"){			
 			if (!request()->ajax()){
 				$uid="";
-				if ($this->reg->isNotEmpty()){
+				if ($this->registry->isNotEmpty()){
 					$uid=uniqid("___mmareginit");
-					$ret[]="<script type=\"text/javascript\"> \n\r function $uid(){ Registry.fill(\"".$this->reg->toBase64()."\"); } \n\r </script>";			
+					$ret[]="<script type=\"text/javascript\"> \n\r function $uid(){ Registry.fill(\"".$this->registry->toBase64()."\"); } \n\r </script>";			
 					$uid.="();";
 				}
-				$ret[]=$this->stub_compile($this->get_qualified_asset_path("/vendor/mantonio84/simpleasm/objectpath.min.js"),"<script type=\"text/javascript\" src=\"%file%\"></script>");
-				$ret[]=$this->stub_compile($this->get_qualified_asset_path("/vendor/mantonio84/simpleasm/registry_utils.min.js"),"<script onload=\"$uid\" type=\"text/javascript\" src=\"%file%\"></script>");				
+				$ret[]=$this->stub_compile(asset("/assets/vendor/mantonio84/simpleasm/objectpath.min.js"),"<script type=\"text/javascript\" src=\"%file%\"></script>");
+				$ret[]=$this->stub_compile(asset("/assets/vendor/mantonio84/simpleasm/registry_utils.min.js"),"<script onload=\"$uid\" type=\"text/javascript\" src=\"%file%\"></script>");				
 			}else{
-				if ($this->reg->isNotEmpty()){
-					$ret[]="<script type=\"text/javascript\"> \n\r Registry.fill(\"".$this->reg->toBase64()."\");  \n\r </script>";			
+				if ($this->registry->isNotEmpty()){
+					$ret[]="<script type=\"text/javascript\"> \n\r Registry.fill(\"".$this->registry->toBase64()."\");  \n\r </script>";			
 				}
 			}
-		}
-		
-		
+		}				
 		
 		$computedAssets=Cache::make(["others" => $this->others, "views" => $this->views])->remember($stream, function ($stream){
 			return \Arr::get($this->evaluate_all(),$stream,[]);
@@ -107,19 +98,17 @@ class Manager {
 		
 		foreach ($computedAssets as $asset){
 			$ret[]=$this->get_stubbed($asset,$stream);
-		}
-		
+		}		
 		
 		$ret[]="<!-- end mma:$stream -->";
 		return "\n\r".implode("\n\r",$ret)."\n\r";
 	}
 	
-	protected function get_stubbed(string $asset, $stream = null){
-		$q=$this->get_qualified_asset_path($asset);
+	protected function get_stubbed(string $asset, $stream = null){		
 		
-		$strem=is_string($stream) ? $stream : $this->get_appropriate_section($asset);
+		$stream=is_string($stream) ? $stream : $this->get_appropriate_section($asset);
 		if (empty($stream)){
-			return $q;
+			return $asset;
 		}
 		$stub=config("asm.streams.$stream.stub","%file%");
 		if (strlen($stub)>1){
@@ -128,23 +117,15 @@ class Manager {
 				if (is_file($f)){
 					$stub=file_get_contents($f);
 				}else{
-					return $q;
+					return $asset;
 				}
 			}
 		}
-		return $this->stub_compile($q,$stub);
+		return $this->stub_compile($asset,$stub);
 	}
 	
 	protected function stub_compile(string $qualified_asset_path, string $stub){
 		return str_replace("%file%",$qualified_asset_path,$stub);
-	}
-	
-	protected function get_qualified_asset_path(string $asset){
-		if (!$this->is_remote($asset)){
-			return asset($asset);
-		}else{
-			return $asset;		
-		}
 	}
 	
 	protected function evaluate_all(bool $forced=false){				
@@ -169,31 +150,12 @@ class Manager {
 				$dep=array_merge($dep,$a['included']);
 				foreach ($a['found'] as $f){
 					$w=$this->get_appropriate_section($f);
-					$computedAssets[$w][]=$f;
-				}
-			}			
-			
-			
-			foreach ($this->views as $view){
-				foreach (config("asm.streams",[]) as $name => $config){
-					if (\Arr::get($config,"auto_find_on_view")===true){
-						$extensions=\Arr::get($config,"extensions",[]);
-						if (!empty($extensions)){					
-							foreach ($extensions as $e){
-								$f="views/".str_replace(".","/",$view).".".$e;
-								if (is_file(public_path($f))){
-									 $computedAssets[$name][]=$f;					
-								}
-							}	
-						}
+					if (!in_array($f,$computedAssets[$w])){
+						$computedAssets[$w][]=$f;
 					}
 				}
-			}
-			
-			$computedAssets=array_map(function ($itm){
-				return array_values(array_unique($itm));
-			}, $computedAssets);
-			
+			}							
+	
 					
 			$this->computed=$computedAssets;
 		}

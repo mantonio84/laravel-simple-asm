@@ -27,10 +27,24 @@ Registry = function(){
 		}
 		return objectPath.has(registry_data, key);
 	}
+	function only(keys){
+		if (!Array.isArray(keys)){
+			return {};
+		}
+		var ret={};
+		for (var i=0;i<keys.length;i++){
+			var k=keys[i];
+			if (has(k)){
+				ret[k]=get(k);
+			}
+		}
+		return ret;
+	}
   return{
     fill: fill,
     get: get,
 	has: has,
-	toObject: dump,	
+	toObject: dump,
+	only: only,
   }
 }();

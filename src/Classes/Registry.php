@@ -8,6 +8,13 @@ class Registry implements \ArrayAccess, Arrayable, Jsonable, \JsonSerializable {
         
     private $data=array();
    
+	public function __construct(){
+		$p=parse_url(config("app.url"), PHP_URL_PATH);
+		$p=is_string($p) ? trim($p) : "";
+		if (strlen($p) > 1){
+			$this->data['_baseurl_']=config("app.url");
+		}
+	}
     
     public function get(string $path, $default=null){
         return \Arr::get($this->data,$path,$default);        

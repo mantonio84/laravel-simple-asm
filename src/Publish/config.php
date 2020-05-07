@@ -13,5 +13,7 @@ return [
 					"auto_find_on_view" => true,
 				],
 	],
+	"minify" => true,
 	"cache" => (env('APP_ENV', 'production')==="production"),
+	"storage" => mantonio84\SimpleAsm\Classes\PublicStorage::class,
 ];
