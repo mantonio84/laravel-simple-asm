@@ -65,16 +65,14 @@ class Registry implements \ArrayAccess, Arrayable, Jsonable, \JsonSerializable {
         $this->data=array_merge($this->data,$arr);
     }  
 	
-	public function offsetSet($offset, $value) {
-        if (is_null($offset)) {
-            $this->data[] = $value;
-        } else {
+    public function offsetSet($offset, $value) {
+        
             $this->data[$offset] = $value;
-        }
+    
     }
 
     public function offsetExists($offset) {
-        return array_key_exists($this->data,$offset);
+        return array_key_exists($offset, $this->data);
     }
 
     public function offsetUnset($offset) {
