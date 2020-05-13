@@ -10,7 +10,7 @@ class Manager {
 	
 	protected $others=[];
 	protected $kv=array();	
-	protected $registry=null;
+	public $registry=null;
 	protected $computed=null;
 	
 	
