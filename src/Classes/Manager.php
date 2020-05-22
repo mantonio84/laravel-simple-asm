@@ -125,7 +125,15 @@ class Manager {
 	}
 	
 	protected function stub_compile(string $qualified_asset_path, string $stub){
-		return str_replace("%file%",$qualified_asset_path,$stub);
+            if (config("app.debug")===true){
+                $b="?_asm=".microtime(true);
+                if (strpos($qualified_asset_path,"?")===false){
+                    $qualified_asset_path.=$b;
+                }else{
+                    $qualified_asset_path=\Str::replaceLast("?",$b."&",$qualified_asset_path);
+                }
+            }
+            return str_replace("%file%",$qualified_asset_path,$stub);
 	}
 	
 	protected function evaluate_all(bool $forced=false){				
