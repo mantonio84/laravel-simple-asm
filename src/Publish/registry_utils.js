@@ -1,4 +1,4 @@
-Registry = function(){
+__lvmccr__ = function(){
 	var registry_data = {};
 	var first=true;
 	function fill(data){		
@@ -47,4 +47,7 @@ Registry = function(){
 	toObject: dump,
 	only: only,
   }
-}();
+};
+
+Registry = __lvmccr__();
+Environment = __lvmccr__();

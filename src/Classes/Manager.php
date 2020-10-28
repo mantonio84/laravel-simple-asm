@@ -12,7 +12,7 @@ class Manager {
 	protected $kv=array();	
 	public $registry=null;
 	protected $computed=null;
-	
+	protected $pub_config=[];
 	
 	
 	public static function getLibraryFilePath(){
@@ -58,7 +58,10 @@ class Manager {
 			$this->computed=null;
 		}			
 	}
-
+        
+        public function publishConfig($keys){
+            $this->pub_config = array_merge($this->pub_config, is_array($keys) ? $keys : func_get_args());            
+        }
 	
 	public function push($w){
 		$this->others=array_values(array_unique(array_merge($this->others,is_array($w) ? $w : func_get_args())));
@@ -66,6 +69,7 @@ class Manager {
 	}
 	
 	public function dump($stream){		
+            
 		if (!is_string($stream) || empty($stream)){
 			return "";
 		}
@@ -76,15 +80,31 @@ class Manager {
 						
 		$ret=array("<!-- begin mma:$stream -->");
 		if ($stream=="js"){			
+                    
 			if (!request()->ajax()){
-				$uid="";
+				$onloads=array();
 				if ($this->registry->isNotEmpty()){
 					$uid=uniqid("___mmareginit");
 					$ret[]="<script type=\"text/javascript\"> \n\r function $uid(){ Registry.fill(\"".$this->registry->toBase64()."\"); } \n\r </script>";			
-					$uid.="();";
+					$onloads[]=$uid."();";
 				}
+                                if (!empty($this->pub_config)){
+                                        $cfg=array();
+                                        $pc= array_unique($this->pub_config);
+                                        foreach ($pc as $k){
+                                            if (config()->has($k)){
+                                                \Arr::set($cfg,$k,config($k));
+                                            }
+                                        }
+                                        if (!empty($cfg)){
+                                            $uid=uniqid("___mmaenvinit");
+                                            $ret[]="<script type=\"text/javascript\"> \n\r function $uid(){ Environment.fill(\"".base64_encode(json_encode($cfg))."\"); } \n\r </script>";			
+                                            $onloads[]=$uid."();";
+                                        }
+				}
+                                
 				$ret[]=$this->stub_compile(asset("/assets/vendor/mantonio84/simpleasm/objectpath.min.js"),"<script type=\"text/javascript\" src=\"%file%\"></script>");
-				$ret[]=$this->stub_compile(asset("/assets/vendor/mantonio84/simpleasm/registry_utils.min.js"),"<script onload=\"$uid\" type=\"text/javascript\" src=\"%file%\"></script>");				
+				$ret[]=$this->stub_compile(asset("/assets/vendor/mantonio84/simpleasm/registry_utils.min.js"),"<script onload=\"".implode(";",$onloads)."\" type=\"text/javascript\" src=\"%file%\"></script>");				
 			}else{
 				if ($this->registry->isNotEmpty()){
 					$ret[]="<script type=\"text/javascript\"> \n\r Registry.fill(\"".$this->registry->toBase64()."\");  \n\r </script>";			
